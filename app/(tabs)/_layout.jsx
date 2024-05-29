@@ -1,9 +1,15 @@
 import { StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Tabs, Redirect } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { FIREBASE_AUTH } from "../../firebaseConfig";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const MainPageLayout = () => {
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    
+  });
   return (
     <>
       <Tabs
