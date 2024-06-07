@@ -1,27 +1,25 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet} from "react-native";
 import React, { useEffect, useState } from "react";
-import { Tabs, Redirect } from "expo-router";
+import { Tabs } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { FIREBASE_AUTH } from "../../firebaseConfig";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const MainPageLayout = () => {
-  const [user, setUser] = useState(null);
-  useEffect(() => {
-    
-  });
   return (
     <>
       <Tabs
         showHeader={false}
         screenOptions={{
-          tabBarActiveTintColor: "#FFA001",
+          tabBarActiveTintColor: "#00C2FF",
           tabBarInactiveTintColor: "#CDCDE0",
+          justifyContent: "center",
           tabBarStyle: {
-            backgroundColor: "#161622",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#1D1D1D",
             borderTopWidth: 1,
             borderTopColor: "transparent",
-            height: 60,
+            height: 70,
+            paddingBottom: 7,
           },
         }}
       >
@@ -30,6 +28,14 @@ const MainPageLayout = () => {
           options={{
             title: "Home",
             headerShown: false,
+            tabBarBadgeStyle: {
+              paddingBottom: 20,
+              shadowColor: "#00C2FF",
+              shadowOffset: {
+                width: 64,
+                height: 64,
+              },
+            },
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons name="home" color={color} size={26} />
             ),
@@ -40,9 +46,17 @@ const MainPageLayout = () => {
           options={{
             title: "Profile",
             headerShown: false,
+            tabBarBadgeStyle: {
+              paddingBottom: 20,
+              shadowColor: "#00C2FF",
+              shadowOffset: {
+                width: 64,
+                height: 64,
+              },
+            },
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
-                name="hat-fedora"
+                name="account"
                 color={color}
                 size={26}
               />
@@ -54,6 +68,14 @@ const MainPageLayout = () => {
           options={{
             title: "About",
             headerShown: false,
+            tabBarBadgeStyle: {
+              paddingBottom: 20,
+              shadowColor: "#00C2FF",
+              shadowOffset: {
+                width: 64,
+                height: 64,
+              },
+            },
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
                 name="information"
@@ -71,3 +93,16 @@ const MainPageLayout = () => {
 export default MainPageLayout;
 
 const styles = StyleSheet.create({});
+
+
+/*
+
+position: absolute;
+width: 430px;
+height: 89px;
+left: 0px;
+top: 0px;
+
+background: linear-gradient(180deg, #282828 0%, #1D1D1D 55.5%);
+
+*/
