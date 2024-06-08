@@ -41,7 +41,7 @@ const About = () => {
               <Link href="https://github.com/Surya-nara0123" className="text-blue-500">
                 <MaterialCommunityIcons name="github" size={40} color="#e8eaea" />
               </Link>
-              <Link href="www.linkedin.com/in/surya-narayanan-c-a43855291" className="text-blue-500">
+              <Link href="https://www.linkedin.com/in/suryanara0123" className="text-blue-500">
                 <MaterialCommunityIcons name="linkedin" size={40} color="#0A66C2" />
               </Link>
             </View>

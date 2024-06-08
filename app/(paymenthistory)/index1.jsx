@@ -5,11 +5,11 @@ import {
   TouchableHighlight,
   SectionList,
   Alert,
+  ToastAndroid,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SQLite from "expo-sqlite";
-import { set } from "firebase/database";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -105,9 +105,13 @@ const MainPagePaymentHistory = () => {
     console.log("clearTable");
   };
   const clearTable1 = async () => {
-    const db = await SQLite.openDatabaseAsync("nativeDB");
-    await db.execAsync("delete from payments;");
-    setPaymentLog([]);
+    try {
+      const db = await SQLite.openDatabaseAsync("nativeDB");
+      await db.execAsync("delete from payments;");
+      setPaymentLog([]);
+    } catch (e) {
+      ToastAndroid.show(e.message, ToastAndroid.SHORT);
+    }
   };
 
   useEffect(() => {
@@ -123,17 +127,21 @@ const MainPagePaymentHistory = () => {
           setPaymentLog(listProcessing(allRows, tags));
         }
       } catch (e) {
-        console.log(e);
+        ToastAndroid.show(e.message, ToastAndroid.SHORT);
       }
     };
     const getColorTags = async () => {
-      const db = await SQLite.openDatabaseAsync("nativeDB");
-      await db.execAsync(
-        "create table if not exists colortags (id integer primary key, tag text default 'unassigned', color text unique, username text);"
-      );
-      const tags1 = await db.getAllAsync("select * from colortags;");
-      setTags(tags1);
-      getData();
+      try {
+        const db = await SQLite.openDatabaseAsync("nativeDB");
+        await db.execAsync(
+          "create table if not exists colortags (id integer primary key, tag text default 'unassigned', color text unique, username text);"
+        );
+        const tags1 = await db.getAllAsync("select * from colortags;");
+        setTags(tags1);
+        getData();
+      } catch (e) {
+        ToastAndroid.show(e.message, ToastAndroid.SHORT);
+      }
     };
 
     getColorTags();

@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TouchableHighlight,
-  FlatList,
+  ToastAndroid,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,6 +11,7 @@ import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as SQLite from "expo-sqlite";
+import { ContributionGraph } from "react-native-chart-kit";
 
 const getColor = (type, tags) => {
   for (let i = 0; i < tags.length; i++) {
@@ -83,6 +84,29 @@ const listProcessing = (list1, tags) => {
   return list2;
 };
 
+const generateCommitData = (paymentLog) => {
+  const data = [];
+  for (let i = 0; i < paymentLog.length; i++) {
+    for (let j = 0; j < paymentLog[i].data.length; j++) {
+      const tempObj = {
+        date: paymentLog[i].data[j].date.split(" ")[0],
+        count: 0,
+      };
+      data.push(tempObj);
+    }
+  }
+  for (let i = 0; i < paymentLog.length; i++) {
+    for (let j = 0; j < paymentLog[i].data.length; j++) {
+      for (let k = 0; k < data.length; k++) {
+        if (data[k].date === paymentLog[i].data[j].date.split(" ")[0]) {
+          data[k].count += 1;
+        }
+      }
+    }
+  }
+  return data;
+};
+
 const Home = () => {
   const navigation = useRouter();
   const onPress = () => {
@@ -91,6 +115,7 @@ const Home = () => {
   const [paymentLog, setPaymentLog] = useState([]);
   const [data, setData] = useState([]);
   const [tags, setTags] = useState([]);
+  const [commitData, setCommitData] = useState([]);
 
   const clearTable = async () => {
     const db = await SQLite.openDatabaseAsync("nativeDB");
@@ -111,17 +136,21 @@ const Home = () => {
           setPaymentLog(listProcessing(allRows, tags));
         }
       } catch (e) {
-        console.log(e);
+        ToastAndroid.show(e.message, ToastAndroid.SHORT);
       }
     };
     const getColorTags = async () => {
-      const db = await SQLite.openDatabaseAsync("nativeDB");
-      await db.execAsync(
-        "create table if not exists colortags (id integer primary key, tag text default 'unassigned', color text unique, username text);"
-      );
-      const tags1 = await db.getAllAsync("select * from colortags;");
-      setTags(tags1);
-      getData();
+      try {
+        const db = await SQLite.openDatabaseAsync("nativeDB");
+        await db.execAsync(
+          "create table if not exists colortags (id integer primary key, tag text default 'unassigned', color text unique, username text);"
+        );
+        const tags1 = await db.getAllAsync("select * from colortags;");
+        setTags(tags1);
+        await getData();
+      } catch (e) {
+        ToastAndroid.show(e.message, ToastAndroid.SHORT);
+      }
     };
 
     getColorTags();
@@ -129,7 +158,7 @@ const Home = () => {
 
   const getHead = (paymentLog) => {
     let j = 0;
-    list4 = [];
+    let list4 = [];
     for (let i = 0; i < paymentLog.length; i++) {
       for (let k = 0; k < paymentLog[i].data.length; k++) {
         if (j < 4) {
@@ -150,21 +179,50 @@ const Home = () => {
         }}
       >
         {/* graph of recent payments */}
-        <TouchableHighlight
-          onPress={() => {}}
-          className="bg-[#171616] rounded-xl items-center justify-center w-full p-2"
-        >
+        <View className="bg-[#171616] rounded-xl items-center justify-center w-full p-2">
           <View className="bg-[#171616] rounded-xl items-center justify-center w-full ">
             <Text className="text-center text-2xl font-black text-white bg-[#070606] p-3 rounded-2xl mt-2 w-[100%]">
               Graph of Recent Payments
             </Text>
-            <View className="bg-[#171616] h-[300px] w-full rounded-xl items-center justify-center">
-              <Text className="text-center text-2xl font-black text-black">
-                Graph
-              </Text>
+            <View className="bg-[#171616] h-[200px] w-full rounded-xl items-center ">
+              <ContributionGraph
+                values={generateCommitData(paymentLog)}
+                endDate={
+                  new Date().getFullYear() +
+                  "-" +
+                  (new Date().getMonth() + 1) +
+                  "-" +
+                  new Date().getDate()
+                }
+                numDays={105}
+                width={400}
+                height={300}
+                chartConfig={{
+                  backgroundGradientFrom: "#00C2FF",
+                  backgroundGradientFromOpacity: 0,
+                  backgroundGradientTo: "#00C2FF",
+                  backgroundGradientToOpacity: 0,
+                  color: (opacity) => {
+                    // console.log(opacity);
+                    return `rgba(0, 194, 255, ${Math.abs(opacity)})`;
+                  },
+                  labelColor: (opacity = 0) =>
+                    `rgba(255, 255, 255, ${opacity})`,
+                  strokeWidth: 2,
+                  barPercentage: 0.5,
+                  useShadowColorFromDataset: false,
+                }}
+                onDayPress={(value) => {
+                  console.log(value);
+                }}
+                style={{
+                  marginBottom: 0,
+                  borderRadius: 16,
+                }}
+              />
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
         {/* list of recent payments */}
         <TouchableHighlight
           className="bg-[#171616] rounded-xl items-center justify-center w-full mt-2 p-2"
@@ -222,15 +280,15 @@ const Home = () => {
         <StatusBar style="light" backgroundColor="#171616" />
       </ScrollView>
       <View
-        className=" bg-blue-300 rounded-full mt-2 shadow-[#00C2FF] shadow-2xl"
+        className=" bg-[#00C2FF] rounded-full mt-2 shadow-[#00C2FF] shadow-2xl"
         style={{
           position: "absolute",
           right: 15,
           bottom: 30,
-          backgroundColor: "#00a0FF",
+          backgroundColor: "#00C2FF",
           shadowColor: "#00C2FF",
           shadowOffset: {
-            width: -32,
+            width: 0,
             height: 0,
           },
           shadowOpacity: 0.25,

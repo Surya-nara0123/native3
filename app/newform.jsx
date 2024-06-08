@@ -4,6 +4,7 @@ import {
   ScrollView,
   TextInput,
   TouchableHighlight,
+  ToastAndroid,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,32 +32,52 @@ const Newform = () => {
       alert("Please assign tags to the colors");
       navigation.push("profile");
     } else {
-      console.log(data);
-      const { descreption, type, amount, timeofpayment } = data;
-      console.log(descreption, tags[type - 1].tag, amount, timeofpayment);
-      const db = await SQLite.openDatabaseAsync("nativeDB");
-      const user = await db.getFirstAsync("select * from users;");
-      const username = user.value;
-      await db.execAsync(
-        "create table if not exists payments (id integer primary key autoincrement, descreption text, type text, amount integer, timeofpayment date, username text);"
-      );
-      await db.execAsync(
-        `insert into payments (descreption, type, amount, timeofpayment, username) values ("${descreption}", "${type}", "${amount}", "${timeofpayment}", "${username}");`
-      );
-      navigation.push("index1");
+      try {
+        const { descreption, type, amount, timeofpayment } = data;
+        if (!(!descreption || !type || !amount || !timeofpayment)) {
+          const db = await SQLite.openDatabaseAsync("nativeDB");
+          const user = await db.getFirstAsync("select * from users;");
+          const username = user.value;
+          await db.execAsync(
+            "create table if not exists payments (id integer primary key autoincrement, descreption text, type text, amount integer, timeofpayment date, username text);"
+          );
+          await db.execAsync(
+            `insert into payments (descreption, type, amount, timeofpayment, username) values ("${descreption}", "${type}", "${amount}", "${timeofpayment}", "${username}");`
+          );
+          navigation.push("index1");
+        } else {
+          ToastAndroid.show("Please fill all the fields", ToastAndroid.SHORT);
+        }
+      } catch (error) {
+        ToastAndroid.show(error.message, ToastAndroid.SHORT);
+      }
     }
   };
   const [descreption, setDescreption] = useState("");
   const [type, setType] = useState("");
   const [amount, setAmount] = useState("");
-  const [timeofpayment, setTimeofpayment] = useState((new Date().getFullYear()) + "-" + (new Date().getMonth() + 1) + "-" + new Date().getDate() + " " + new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds());
+  const [timeofpayment, setTimeofpayment] = useState(
+    new Date().getFullYear() +
+      "-" +
+      (new Date().getMonth() + 1) +
+      "-" +
+      new Date().getDate() +
+      " " +
+      new Date().getHours() +
+      ":" +
+      new Date().getMinutes() +
+      ":" +
+      new Date().getSeconds()
+  );
   const onChange = (key, value) => {
     setData({ ...data, [key]: value });
   };
 
   useEffect(() => {
     const fetchTags = async () => {
-      const db = await SQLite.openDatabaseAsync("nativeDB");
+      const db = await SQLite.openDatabaseAsync("nativeDB", {
+        useNewConnection: true,
+      });
       const tags = await db.getAllAsync("select * from colortags;");
       setTags(tags);
     };
@@ -67,6 +88,7 @@ const Newform = () => {
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
+          backgroundColor: "#282828",
           height: "100%",
           padding: 8,
           alignItems: "center",
@@ -74,13 +96,15 @@ const Newform = () => {
         }}
       >
         <TextInput
-          className="w-full h-10 border-2 border-gray-300 rounded-lg px-2 m-2"
+          className="w-full h-10 border-2 bg-white border-gray-300 rounded-lg px-2 m-2 text-black"
           placeholder="Description"
+          placeholderTextColor="#000"
           onChangeText={setDescreption}
           value={descreption}
         />
         <View className="w-full">
           <SelectList
+            search={false}
             style={{
               width: "100%",
               height: 40,
@@ -91,6 +115,16 @@ const Newform = () => {
               marginVertical: 8,
             }}
             placeholder="Type"
+            placeholderTextColor="white"
+            boxStyles={{
+              backgroundColor: "white",
+            }}
+            disabledTextStyles={{
+              color: "white",
+              backgroundColor: "black",
+            }}
+            dropdownItemStyles={{ color: "white" }}
+            dropdownTextStyles={{ color: "white" }}
             data={tags.map(
               (tag) =>
                 tag.tag != "unassigned" && { key: tag.id, value: tag.tag }
@@ -106,7 +140,7 @@ const Newform = () => {
           value={data.type}
         /> */}
         <TextInput
-          className="w-full h-10 border-2 border-gray-300 rounded-lg px-2 m-2"
+          className="w-full h-10 border-2 bg-white border-gray-300 rounded-lg px-2 m-2"
           placeholder="Amount"
           onChangeText={setAmount}
           value={amount}
@@ -134,25 +168,22 @@ const Newform = () => {
             borderColor: "lightgray",
             borderRadius: 8,
             paddingHorizontal: 8,
-            marginVertical: 8,
+            backgroundColor: "white",
+            marginHorizontal: 8,
           }}
           containerStyle={{
-            width: "100%",
             height: 50,
-            borderWidth: 2,
-            borderColor: "lightgray",
             padding: 3,
             borderRadius: 8,
             paddingHorizontal: 8,
-            marginVertical: 8,
+            justifyContent: "center",
           }}
         />
         <TouchableHighlight
-          className=" bg-blue-300 p-3 rounded-full mt-2 px-12"
+          className=" bg-[#00C2FF] p-3 rounded-full mt-2 px-12"
           onPress={() => {
             onSubmit({ descreption, type, amount, timeofpayment });
           }}
-          underlayColor="#"
         >
           <Text className="font-black">Submit</Text>
         </TouchableHighlight>

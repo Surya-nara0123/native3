@@ -5,6 +5,7 @@ import {
   TouchableHighlight,
   TextInput,
   TouchableOpacity,
+  ToastAndroid,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -34,53 +35,59 @@ const Profile = () => {
     );
     const tags = await db.getAllAsync("select * from colortags;");
     setTags(tags);
-    console.log(tags);
   };
   const onSignOut = async () => {
     navigation.push("/");
   };
 
   const onSubmit = async (text, color) => {
-    const db = await SQLite.openDatabaseAsync("nativeDB");
-    const tags = await db.getAllAsync("select * from colortags;");
-    console.log(tags);
-    const tag = tags.find((tag) => tag.color == color);
-    if (!tag) {
-      console.log("no tag");
-      await db.execAsync(
-        `insert into colortags (tag, color) values ('${text}', '${color}');`
-      );
-    } else {
-      console.log("tag");
-      await db.execAsync(
-        `update colortags set tag = '${text}' where color = '${color}';`
-      );
-    }
+    try {
+      const db = await SQLite.openDatabaseAsync("nativeDB");
+      const tags = await db.getAllAsync("select * from colortags;");
+      const tag = tags.find((tag) => tag.color == color);
+      if (!tag) {
+        await db.execAsync(
+          `insert into colortags (tag, color) values ('${text}', '${color}');`
+        );
+      } else {
+        await db.execAsync(
+          `update colortags set tag = '${text}' where color = '${color}';`
+        );
+      }
 
-    const newtags = await db.getAllAsync("select * from colortags;");
-    setTags(newtags);
-    setEdit([false, false, false, false, false]);
-    setTextinput("");
+      const newtags = await db.getAllAsync("select * from colortags;");
+      setTags(newtags);
+      setEdit([false, false, false, false, false]);
+      setTextinput("");
+    } catch (e) {
+      ToastAndroid.show(e.message, ToastAndroid.SHORT);
+    }
   };
 
   useEffect(() => {
     const fetchUsername = async () => {
-      const db = await SQLite.openDatabaseAsync("nativeDB");
-      const user = await db.getAllAsync("select * from users where id = 1;");
-      console.log(user);
-      if (user.length > 0) {
-        setUsername(user[0].value);
+      try {
+        const db = await SQLite.openDatabaseAsync("nativeDB");
+        const user = await db.getAllAsync("select * from users where id = 1;");
+        if (user.length > 0) {
+          setUsername(user[0].value);
+        }
+      } catch (e) {
+        ToastAndroid.show(e.message, ToastAndroid.SHORT);
       }
     };
     fetchUsername();
     const getAllTags = async () => {
-      const db = await SQLite.openDatabaseAsync("nativeDB");
-      await db.execAsync(
-        "create table if not exists colortags (id integer primary key, tag text default 'unassigned', color text unique, username text);"
-      );
-      const tags = await db.getAllAsync("select * from colortags;");
-      setTags(tags);
-      console.log(tags);
+      try {
+        const db = await SQLite.openDatabaseAsync("nativeDB");
+        await db.execAsync(
+          "create table if not exists colortags (id integer primary key, tag text default 'unassigned', color text unique, username text);"
+        );
+        const tags = await db.getAllAsync("select * from colortags;");
+        setTags(tags);
+      } catch (e) {
+        ToastAndroid.show(e.message, ToastAndroid.SHORT);
+      }
     };
     getAllTags();
   }, []);
@@ -102,17 +109,16 @@ const Profile = () => {
           </Text>
           <TouchableHighlight
             className=" bg-blue-300 p-3 rounded-full mt-2 shadow-[#00C2FF] shadow-2xl"
-            style={{ 
+            style={{
               backgroundColor: "#00C2FF",
               shadowColor: "#00C2FF",
               shadowOffset: {
                 width: 32,
-                height: 0
+                height: 0,
               },
               shadowOpacity: 0.25,
-              shadowRadius: 32
-
-             }}
+              shadowRadius: 32,
+            }}
             activeOpacity={0.6}
             onPress={onSignOut}
             underlayColor="#"
@@ -180,8 +186,6 @@ const Profile = () => {
                   />
                   <TouchableHighlight
                     onPress={() => {
-                      console.log(textinput);
-                      console.log(color);
                       if (textinput.length > 0) {
                         onSubmit(textinput, color);
                       } else {

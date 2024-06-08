@@ -4,9 +4,8 @@ import {
   TextInput,
   View,
   TouchableHighlight,
-  ActivityIndicator,
-  StyleSheet,
-  Image
+  Image,
+  ToastAndroid
 } from "react-native";
 
 import { Link, useRouter } from "expo-router";
@@ -20,7 +19,7 @@ export default function Index() {
   const navigation = useRouter();
   const onPress = async () => {
     setUsername(username.replace(/\s/g,''));
-    console.log(username);
+    if(username){
     try {
       const db = await SQLite.openDatabaseAsync("nativeDB");
       await db.execAsync(
@@ -38,8 +37,11 @@ export default function Index() {
       }
       console.log(" done ");
       navigation.push("home");
+    
     } catch (e) {
-      console.log(e);
+      ToastAndroid.show(e.message, ToastAndroid.SHORT);
+    }}else{
+      ToastAndroid.show("Please enter your name", ToastAndroid.SHORT);
     }
   };
 
